@@ -1,0 +1,114 @@
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+
+	android:id="@+id/frameChords"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" >
+
+    <!-- main text view -->
+    <kan.illuminated.chords.MyScrollView
+		android:id="@+id/scrollChords"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+<!-- 	        android:textIsSelectable="true" -->
+   	    <kan.illuminated.chords.MyTextView
+	        android:id="@+id/textChords"
+	        android:typeface="monospace"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textSize="18sp"
+	        android:padding="9dp" />
+    </kan.illuminated.chords.MyScrollView>
+
+    <!-- top bar -->
+    <LinearLayout
+		android:id="@+id/chordsTopRoot"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="top"
+		android:orientation="vertical"
+		android:background="#ccc"
+		android:visibility="gone"
+		android:alpha="0.9">
+
+        <FrameLayout
+			android:id="@+id/chordsTopSpace"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" />
+
+	    <LinearLayout
+			android:id="@+id/chordsTopBar"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal" >
+
+	        <LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:paddingLeft="8dip"
+				android:orientation="vertical" >
+
+		        <TextView
+		            android:id="@+id/topTitle"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content" />
+
+		        <TextView
+		            android:id="@+id/topSubtitle"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content" />
+	        </LinearLayout>
+
+	    </LinearLayout>
+    </LinearLayout>
+
+    <!-- bottom bar -->
+    <LinearLayout
+		android:id="@+id/chordsBottomBar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		android:orientation="horizontal"
+		android:background="#ccc"
+		android:visibility="gone"
+		android:alpha="0.9">
+
+        <ImageButton
+			android:id="@+id/chordsPlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/ActionButton"
+            android:src="@drawable/ic_action_play"
+            android:contentDescription="play"
+            android:onClick="onPlayClick" />
+
+        <ImageButton
+			android:id="@+id/chordsPause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/ActionButton"
+            android:src="@drawable/ic_action_pause"
+            android:visibility="gone"
+            android:contentDescription="pause"
+            android:onClick="onPauseClick" />
+
+        <SeekBar
+            android:id="@+id/chordsPlaySeek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical" />
+
+    </LinearLayout>
+
+    <!-- progress bar -->
+	<ProgressBar
+		android:id="@+id/loadingProgress"
+		style="?android:attr/progressBarStyleLarge"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center"
+		android:visibility="gone" />
+
+
+</FrameLayout>

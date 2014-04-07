@@ -1,0 +1,6 @@
+<SeekBar 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    
+	android:id="@+id/speedBar"
+	android:layout_width="100dp"
+	android:layout_height="match_parent" />
