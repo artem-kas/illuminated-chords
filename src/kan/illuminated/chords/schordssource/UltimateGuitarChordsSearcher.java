@@ -3,10 +3,9 @@ package kan.illuminated.chords.schordssource;
 import android.os.Handler;
 import android.util.Log;
 import kan.illuminated.chords.Chords;
-import kan.illuminated.chords.UltimateGuitarSearchRequest;
-import kan.illuminated.chords.UltimateGuitarSearchRequest.UltimateGuitarSearchResult;
 import kan.illuminated.chords.net.PersistentTask;
 import kan.illuminated.chords.net.PersistentTask.PersistentTaskException;
+import kan.illuminated.chords.schordssource.UltimateGuitarSearchRequest.UltimateGuitarSearchResult;
 
 import java.util.ArrayList;
 import java.util.Collections;

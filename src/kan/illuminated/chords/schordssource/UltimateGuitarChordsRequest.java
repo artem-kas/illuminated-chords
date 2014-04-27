@@ -1,6 +1,8 @@
-package kan.illuminated.chords;
+package kan.illuminated.chords.schordssource;
 
+import kan.illuminated.chords.Chords;
 import kan.illuminated.chords.Chords.ChordMark;
+import kan.illuminated.chords.HttpQuery;
 import org.ccil.cowan.tagsoup.Parser;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
@@ -11,7 +13,10 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class UltimateGuitarChordsSource {
+/**
+ * @author KAN
+ */
+public class UltimateGuitarChordsRequest {
 
 	public Chords getChords(String url) {
 
@@ -40,7 +45,7 @@ public class UltimateGuitarChordsSource {
 			private boolean skip	= false;
 			private int		skipNest = 0;
 
-			private ChordMark	cm;
+			private ChordMark cm;
 
 
 			@Override
@@ -52,7 +57,7 @@ public class UltimateGuitarChordsSource {
 
 			@Override
 			public void startElement(String uri, String localName, String qName,
-					Attributes atts) throws SAXException {
+			                         Attributes atts) throws SAXException {
 
 				if (title >= 0)
 					title++;
@@ -259,8 +264,4 @@ public class UltimateGuitarChordsSource {
 		return chords;
 	}
 
-	public static void main(String[] args) {
-		System.out.println(
-				new UltimateGuitarChordsSource().getChords("http://tabs.ultimate-guitar.com/d/depeche_mode/goodnight_lovers_crd.htm").title);
-	}
 }

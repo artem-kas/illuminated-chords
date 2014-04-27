@@ -20,13 +20,8 @@ public class SearchSuggestionProvider extends ContentProvider {
 
 	private static final int    HISTORY_DISPLAY_COUNT   = 5;
 
-	private SearchHistory searchHistory;
-
 	@Override
 	public boolean onCreate() {
-
-		searchHistory = new SearchHistory(getContext());
-
 		return true;
 	}
 
@@ -38,6 +33,7 @@ public class SearchSuggestionProvider extends ContentProvider {
 		System.out.println("querying suggestions from " + Thread.currentThread().getName());
 		new Throwable().printStackTrace(System.out);
 
+		SearchHistory searchHistory = ChordsDb.chordsDb().searchHistory();
 		List<HistoryRecord> history = searchHistory.getHistory(selectionArgs[0], HISTORY_DISPLAY_COUNT);
 
 		MatrixCursor c = new MatrixCursor(new String[]{

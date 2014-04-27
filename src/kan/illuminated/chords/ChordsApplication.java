@@ -12,6 +12,9 @@ public class ChordsApplication extends Application {
 
 	@Override
 	public void onCreate() {
+
+		System.out.println("creating chords application");
+
 		super.onCreate();
 
 		appContext = getApplicationContext();

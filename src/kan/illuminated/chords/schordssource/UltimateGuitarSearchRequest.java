@@ -1,5 +1,8 @@
-package kan.illuminated.chords;
+package kan.illuminated.chords.schordssource;
 
+import kan.illuminated.chords.Chords;
+import kan.illuminated.chords.HttpQuery;
+import kan.illuminated.chords.StringUtils;
 import org.ccil.cowan.tagsoup.Parser;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;

@@ -29,6 +29,7 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import kan.illuminated.chords.Chords;
 import kan.illuminated.chords.R;
+import kan.illuminated.chords.data.ChordsDb;
 import kan.illuminated.chords.data.SearchHistory;
 import kan.illuminated.chords.schordssource.ChordsSearcher.ChordsResultListener;
 import kan.illuminated.chords.schordssource.UltimateGuitarChordsSearcher;
@@ -352,7 +353,7 @@ public class SearchActivity extends ExpandableListActivity {
 
 		progressBar = (ProgressBar) findViewById(R.id.searchLoadingProgress);
 
-		searchHistory = new SearchHistory(this);
+		searchHistory = ChordsDb.chordsDb().searchHistory();
 
 		FragmentManager fm = getFragmentManager();
 		SearchStateFragment ssf = (SearchStateFragment) fm.findFragmentByTag(SEARCH_FRAGMENT);

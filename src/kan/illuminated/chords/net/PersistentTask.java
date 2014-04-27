@@ -42,9 +42,12 @@ public abstract class PersistentTask<Input, Output> {
 		public void run() {
 
 			Output out = null;
-			boolean failed = false;
+			boolean done    = false;
+			Throwable err = null;
+
 			try {
 				out = PersistentTask.this.run(in);
+				done = true;
 			} catch (PersistentTaskException e) {
 				// TODO - log
 				e.printStackTrace();
@@ -54,15 +57,15 @@ public abstract class PersistentTask<Input, Output> {
 						executeTask(new TaskRunnable(in, tryCount + 1), tries[tryCount + 1], TimeUnit.SECONDS);
 					}
 				} else {
-					failed = true;
+					err = e;
 				}
 			} catch (Throwable e) {
 				e.printStackTrace();
 
-				failed = true;
+				err = e;
 			}
 
-			if (out != null) {
+			if (done) {
 				try {
 					onResponseTaskThread(out);
 				} catch (Throwable e) {
@@ -85,19 +88,21 @@ public abstract class PersistentTask<Input, Output> {
 
 			}
 
-			if (failed) {
+			if (err != null && err instanceof Exception) {
 				try {
-					onFailTaskThread();
+					onFailTaskThread((Exception)err);
 				} catch (Throwable e) {
 					e.printStackTrace();
 				}
 
 				if (handler != null) {
+
+					final Exception finalErr = (Exception) err;
 					handler.post(new Runnable() {
 						@Override
 						public void run() {
 							try {
-								onFailCallerThread();
+								onFailCallerThread(finalErr);
 							} catch (Throwable e) {
 								e.printStackTrace();
 							}
@@ -196,12 +201,12 @@ public abstract class PersistentTask<Input, Output> {
 	protected void onResponseCallerThread(Output out) {
 	}
 
-	protected void onFailTaskThread() {
+	protected void onFailTaskThread(Exception e) {
 	}
 
 	/**
 	 * called only if caller thread is ui thread
 	 */
-	protected void onFailCallerThread() {
+	protected void onFailCallerThread(Exception e) {
 	}
 }

@@ -1,6 +1,7 @@
 package kan.illuminated.chords;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Chords {
@@ -10,6 +11,7 @@ public class Chords {
 		public int	length;
 	}
 
+	public Integer  chordId;
 	public String	author;
 	public String	title;
 	public String	url;
@@ -20,6 +22,9 @@ public class Chords {
 	public String	text;
 
 	public List<ChordMark> chordMarks = new ArrayList<Chords.ChordMark>();
+
+	public Date     lastRead;
+	public Date     previousRead;
 
 	private int longestLine = -1;
 

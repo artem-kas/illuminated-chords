@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Layout;
 import android.text.Selection;
@@ -35,7 +34,7 @@ import kan.illuminated.chords.Chords;
 import kan.illuminated.chords.Chords.ChordMark;
 import kan.illuminated.chords.MyTextView;
 import kan.illuminated.chords.R;
-import kan.illuminated.chords.UltimateGuitarChordsSource;
+import kan.illuminated.chords.schordssource.UltimateGuitarChordsSource;
 import kan.illuminated.chords.ui.Autoscroller;
 
 import java.util.Timer;
@@ -43,29 +42,14 @@ import java.util.TimerTask;
 
 import static java.lang.Math.*;
 
-public class ChordsActivity extends BaseChordsActivity {
+public class ChordsActivity extends BaseChordsActivity<Chords> {
+
+	private static final String TAG = ChordsActivity.class.getName();
 
 	private enum EState {
 		NEW,
 		LOADING,
 		CHORDS
-	}
-
-	private class LoadChordsTask extends AsyncTask<String, Integer, Chords>
-	{
-
-		@Override
-		protected Chords doInBackground(String... params) {
-
-			return new UltimateGuitarChordsSource().getChords(params[0]);
-		}
-
-		@Override
-		protected void onPostExecute(Chords chords) {
-
-			onChordsLoaded(chords);
-		}
-
 	}
 
 	private class ChordsScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -77,7 +61,7 @@ public class ChordsActivity extends BaseChordsActivity {
 
 			System.out.println("onScaleBegin() " + detector.getScaleFactor());
 
-			originalScale = state.textScale;
+			originalScale = state().textScale;
 
 			return true;
 		}
@@ -116,10 +100,9 @@ public class ChordsActivity extends BaseChordsActivity {
 		@Override
 		public boolean onDoubleTap(MotionEvent e) {
 
-			if (state.textScale != 1.0f) {
+			if (state().textScale != 1.0f) {
 				resetTextZoom(e.getX(), e.getY());
-			}
-			else {
+			} else {
 				zoomToLongestLine(e.getX(), e.getY());
 			}
 
@@ -139,52 +122,65 @@ public class ChordsActivity extends BaseChordsActivity {
 
 	private static class State {
 
-		Chords	chords;
+		UltimateGuitarChordsSource chordsSource;
 
-		int		chordsOffset;
-		float	textScale = 1.0f;
+		Chords chords;
 
-		boolean	scrolling	= false;
+		int chordsOffset;
+		float textScale = 1.0f;
+
+		boolean scrolling = false;
 	}
 
-	private static final float MIN_TEXT_SCALE	= 0.5f;
-	private static final float MAX_TEXT_SCALE	= 2.0f;
+	public static class ChordsFragment extends BackgroundFragment {
+		private State state = new State();
+	}
 
-	private EState	stateStatus = EState.NEW;
+
+	private static final float MIN_TEXT_SCALE = 0.5f;
+	private static final float MAX_TEXT_SCALE = 2.0f;
+
+	private EState stateStatus = EState.NEW;
 
 	private boolean fullScreen = false;
 
 	private ScaleGestureDetector scaleGestureDetector;
 
-//	private View		topRoot;
+	//	private View		topRoot;
 //	private View		topSpace;
 //	private View		topBar;
-	private View		bottomBar;
-	private View		playButton;
-	private View		pauseButton;
-//	private TextView	topTitle;
+	private View bottomBar;
+	private View playButton;
+	private View pauseButton;
+	//	private TextView	topTitle;
 //	private TextView	topSubtitle;
-	private ScrollView	scrollChords;
-	private MyTextView	textChords;
-	private SeekBar		speedSeek;
-	private ProgressBar	loadingProgress;
+	private ScrollView scrollChords;
+	private MyTextView textChords;
+	private SeekBar speedSeek;
+	private ProgressBar loadingProgress;
 
 
 	private float baseTextSize;
 	private int actionBarHeight;
 
-	// thread safe - used only form ui thread
-	private static final State state = new State();
-
 	private Timer fullScreenTimer;
 
-	private Autoscroller	autoscroller;
-	private static final float			minAutoscrollSpeed	= 5;	// pps
-	private static final float			maxAutoscrollSpeed	= 25;	// pps
+	private Autoscroller autoscroller;
+	private static final float minAutoscrollSpeed = 5;    // pps
+	private static final float maxAutoscrollSpeed = 25;    // pps
 
 
 	public ChordsActivity() {
 		System.out.println("ChordsActivity() ctor");
+	}
+
+	@Override
+	protected BackgroundFragment createBackgroundFragment() {
+		return new ChordsFragment();
+	}
+
+	private State state() {
+		return ((ChordsFragment) backgroundFragment).state;
 	}
 
 	@Override
@@ -204,15 +200,17 @@ public class ChordsActivity extends BaseChordsActivity {
 //		topRoot			= findViewById(R.id.chordsTopRoot);
 //		topSpace		= findViewById(R.id.chordsTopSpace);
 //		topBar			= findViewById(R.id.chordsTopBar);
-		bottomBar		= findViewById(R.id.chordsBottomBar);
-		playButton		= findViewById(R.id.chordsPlay);
-		pauseButton		= findViewById(R.id.chordsPause);
+		bottomBar = findViewById(R.id.chordsBottomBar);
+		playButton = findViewById(R.id.chordsPlay);
+		pauseButton = findViewById(R.id.chordsPause);
 //		topTitle		= (TextView) findViewById(R.id.topTitle);
 //		topSubtitle		= (TextView) findViewById(R.id.topSubtitle);
-		scrollChords	= (ScrollView) findViewById(R.id.scrollChords);
-		textChords		= (MyTextView) findViewById(R.id.textChords);
-		speedSeek		= (SeekBar) findViewById(R.id.chordsPlaySeek);
-		loadingProgress	= (ProgressBar) findViewById(R.id.loadingProgress);
+		scrollChords = (ScrollView) findViewById(R.id.scrollChords);
+		textChords = (MyTextView) findViewById(R.id.textChords);
+		speedSeek = (SeekBar) findViewById(R.id.chordsPlaySeek);
+		loadingProgress = (ProgressBar) findViewById(R.id.loadingProgress);
+
+		initBackgroundFragment();
 
 		baseTextSize = textChords.getTextSize();
 
@@ -289,32 +287,60 @@ public class ChordsActivity extends BaseChordsActivity {
 
 		loadSettings();
 
-		Uri uri = getIntent().getData();
+		Uri requestUri = getIntent().getData();
 
-		Log.d("kan", "url is [" + uri + "]");
+		Log.d("kan", "requestUri is [" + requestUri + "]");
 
-		Chords sc = state.chords;
+		UltimateGuitarChordsSource ugcs = (UltimateGuitarChordsSource) getBackgroundTask();
+		if (requestUri != null) {
 
-		if (sc == null || uri == null || !sc.url.equals(uri.toString())) {
+			// this is a request for the (new) chords
 
-			// load new chords
+			if (ugcs != null) {
+				if (requestUri.toString().equals(ugcs.getUrl())) {
+					// already working on it
 
-			// don't restore previous chords state if any
-			state.chords = null;
-			state.scrolling = false;
+					restoreChordsTask(ugcs);
 
-			loadChords(uri);
-		}
-		else {
-			// restore previous chords if any
+				} else {
 
-			if (state.chords != null) {
-				setChordsText(state.chords);
+					// new chords request
+
+					// don't restore previous chords state if any
+					state().chords = null;
+					state().scrolling = false;
+
+					loadChords(requestUri);
+				}
+			} else {
+
+				// probably the very first run
+
+				loadChords(requestUri);
 			}
 
-			stateStatus = EState.CHORDS;
+		} else {
+
+			Log.i(TAG, "creating chords activity with no request url");
+
+			if (ugcs != null) {
+				restoreChordsTask(ugcs);
+			}
 		}
 
+	}
+
+	private void restoreChordsTask(UltimateGuitarChordsSource ugcs) {
+		Chords ch = ugcs.getChords();
+		if (ch != null) {
+			stateStatus = EState.CHORDS;
+
+			setChordsText(ch);
+		} else {
+			toLoadingState();
+		}
+
+		ugcs.setResultListener(this);
 	}
 
 	private void initStyles() {
@@ -340,14 +366,14 @@ public class ChordsActivity extends BaseChordsActivity {
 			// Widget.Holo.ActionBar
 			TypedArray abAttrs = obtainStyledAttributes(abStyleId,
 					new int[]{
-						android.R.attr.background,
-						android.R.attr.titleTextStyle,
-						android.R.attr.subtitleTextStyle,
-						android.R.attr.height,
-						android.R.attr.paddingTop,
-						android.R.attr.paddingLeft,
-						android.R.attr.paddingBottom,
-						android.R.attr.paddingRight});
+							android.R.attr.background,
+							android.R.attr.titleTextStyle,
+							android.R.attr.subtitleTextStyle,
+							android.R.attr.height,
+							android.R.attr.paddingTop,
+							android.R.attr.paddingLeft,
+							android.R.attr.paddingBottom,
+							android.R.attr.paddingRight});
 
 			Drawable bgDrawable = abAttrs.getDrawable(0);
 			int titleStyleId = abAttrs.getResourceId(1, 0);
@@ -371,8 +397,8 @@ public class ChordsActivity extends BaseChordsActivity {
 				// TextAppearance.Holo.Widget.ActionBar.Title
 				TypedArray tsAttrs = obtainStyledAttributes(titleStyleId,
 						new int[]{
-							android.R.attr.textSize,
-							android.R.attr.textColor});
+								android.R.attr.textSize,
+								android.R.attr.textColor});
 
 				int titleSize = tsAttrs.getDimensionPixelSize(0, 0);
 				int titleColor = tsAttrs.getColor(1, 0);
@@ -390,9 +416,9 @@ public class ChordsActivity extends BaseChordsActivity {
 
 			if (subtitleStyleId != 0) {
 				TypedArray ssAttrs = obtainStyledAttributes(subtitleStyleId,
-					new int[]{
-						android.R.attr.textSize,
-						android.R.attr.textColor});
+						new int[]{
+								android.R.attr.textSize,
+								android.R.attr.textColor});
 
 				int titleSize = ssAttrs.getDimensionPixelSize(0, 0);
 				int titleColor = ssAttrs.getColor(1, 0);
@@ -411,8 +437,25 @@ public class ChordsActivity extends BaseChordsActivity {
 
 	private void loadChords(Uri uri) {
 
-		new LoadChordsTask().execute(uri.toString());
+		State s = state();
 
+		if (s.chordsSource != null) {
+			s.chordsSource.cancel();
+		}
+
+		s.chordsSource = new UltimateGuitarChordsSource();
+		registerBackgroundTask(s.chordsSource);
+
+		Chords chords = s.chordsSource.requestChords(uri.toString());
+
+		if (chords == null) {
+			toLoadingState();
+		} else {
+			onChordsLoaded(chords);
+		}
+	}
+
+	private void toLoadingState() {
 		loadingProgress.setVisibility(View.VISIBLE);
 
 		stateStatus = EState.LOADING;
@@ -424,10 +467,20 @@ public class ChordsActivity extends BaseChordsActivity {
 
 		stateStatus = EState.CHORDS;
 
-		state.chordsOffset = 0;
-		state.chords = chords;
+		state().chordsOffset = 0;
+		state().chords = chords;
 
 		setChordsText(chords);
+	}
+
+	@Override
+	public void onBackgroundTaskReady(Chords chords) {
+		onChordsLoaded(chords);
+	}
+
+	@Override
+	public void onBackgroundTaskFailed(Exception e) {
+		// TODO
 	}
 
 	private void setChordsText(Chords chords) {
@@ -492,8 +545,8 @@ public class ChordsActivity extends BaseChordsActivity {
 
 		scrollChords.setSystemUiVisibility(
 				View.SYSTEM_UI_FLAG_FULLSCREEN |
-				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-				View.SYSTEM_UI_FLAG_LOW_PROFILE);
+						View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+						View.SYSTEM_UI_FLAG_LOW_PROFILE);
 
 		fullScreen = true;
 	}
@@ -578,7 +631,7 @@ public class ChordsActivity extends BaseChordsActivity {
 
 		System.out.println("onStart()");
 
-		textChords.setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSize * state.textScale);
+		textChords.setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSize * state().textScale);
 	}
 
 	@Override
@@ -591,7 +644,7 @@ public class ChordsActivity extends BaseChordsActivity {
 
 		// TODO - resume full screen timer
 
-		if (state.scrolling)
+		if (state().scrolling)
 			autoscroller.start();
 	}
 
@@ -606,7 +659,7 @@ public class ChordsActivity extends BaseChordsActivity {
 		int o = textChords.getOffsetForPosition(0, scrollChords.getScrollY());
 
 		if (textChords.getText() instanceof Spannable)
-			Selection.setSelection((Spannable)textChords.getText(), o);
+			Selection.setSelection((Spannable) textChords.getText(), o);
 
 		if (fullScreenTimer != null) {
 			fullScreenTimer.cancel();
@@ -614,7 +667,7 @@ public class ChordsActivity extends BaseChordsActivity {
 			fullScreenTimer = null;
 		}
 
-		state.scrolling = autoscroller.isRunning();
+		state().scrolling = autoscroller.isRunning();
 
 		autoscroller.stop();
 	}
@@ -632,7 +685,7 @@ public class ChordsActivity extends BaseChordsActivity {
 	protected void onDestroy() {
 		System.out.println("onDestroy()");
 
-		state.chordsOffset = textChords.getOffsetForPosition(0, scrollChords.getScrollY());
+		state().chordsOffset = textChords.getOffsetForPosition(0, scrollChords.getScrollY());
 
 		super.onDestroy();
 	}
@@ -641,7 +694,7 @@ public class ChordsActivity extends BaseChordsActivity {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
 
-		if (state.chords != null) {
+		if (state().chords != null) {
 			scrollChords.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
 				@Override
@@ -649,7 +702,7 @@ public class ChordsActivity extends BaseChordsActivity {
 					Layout layout = textChords.getLayout();
 
 					final Rect r = new Rect();
-					int line = layout.getLineForOffset(state.chordsOffset);
+					int line = layout.getLineForOffset(state().chordsOffset);
 					layout.getLineBounds(line, r);
 
 					scrollChords.scrollTo(0, r.top);
@@ -701,7 +754,7 @@ public class ChordsActivity extends BaseChordsActivity {
 	}
 
 	private void setTextScale(float scale) {
-		state.textScale = min(max(scale, MIN_TEXT_SCALE), MAX_TEXT_SCALE);
+		state().textScale = min(max(scale, MIN_TEXT_SCALE), MAX_TEXT_SCALE);
 	}
 
 	private void setScrollVelocity(float velocity) {
@@ -729,24 +782,24 @@ public class ChordsActivity extends BaseChordsActivity {
 
 		// scale text size
 		// text view will keep new size word wrapped so horizontal scroll is avoided
-		textChords.setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSize * state.textScale);
+		textChords.setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSize * state().textScale);
 
 		if (fitLine) {
 
-			float dw = Layout.getDesiredWidth(state.chords.text, textChords.getPaint());
+			float dw = Layout.getDesiredWidth(state().chords.text, textChords.getPaint());
 
 			while (dw > textChords.getWidth()) {
-				float ts = state.textScale;
+				float ts = state().textScale;
 
-				setTextScale(state.textScale * 0.95f);
-				if (ts == state.textScale) {
+				setTextScale(state().textScale * 0.95f);
+				if (ts == state().textScale) {
 					// hit zoom limits
 					break;
 				}
 
-				textChords.setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSize * state.textScale);
+				textChords.setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSize * state().textScale);
 
-				dw = Layout.getDesiredWidth(state.chords.text, textChords.getPaint());
+				dw = Layout.getDesiredWidth(state().chords.text, textChords.getPaint());
 			}
 		}
 
@@ -776,23 +829,23 @@ public class ChordsActivity extends BaseChordsActivity {
 
 	private void resetTextZoom(final float pivotX, final float pivotY) {
 
-		state.textScale = 1.0f;
+		state().textScale = 1.0f;
 
 		zoomText(pivotX, pivotY);
 	}
 
 	public void zoomToLongestLine(final float pivotX, final float pivotY) {
 
-		if (state.chords == null)
+		if (state().chords == null)
 			return;
 
-		float w = Layout.getDesiredWidth(state.chords.text, textChords.getPaint());
+		float w = Layout.getDesiredWidth(state().chords.text, textChords.getPaint());
 
 		System.out.println("desired width is " + w);
 
 		int cw = textChords.getWidth();
 
-		setTextScale(state.textScale / w * cw);
+		setTextScale(state().textScale / w * cw);
 		zoomText(pivotX, pivotY, true);
 	}
 
