@@ -3,7 +3,7 @@
 	android:id="@+id/searchChord"
 	android:orientation="horizontal"
 	android:layout_width="match_parent"
-	android:layout_height="48dp"
+	android:layout_height="@dimen/chord_list_item_height"
 	android:gravity="center_vertical"
 	android:paddingLeft="30dp">
 

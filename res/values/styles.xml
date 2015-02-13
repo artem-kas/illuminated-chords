@@ -20,15 +20,24 @@
     <!-- Application theme. -->
     <style name="FullScreenTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-        
+
         <item name="android:windowActionBarOverlay">true</item>
     </style>
+
+	<style name="NavigationItem">
+		<item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:clickable">true</item>
+		<item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
+		<item name="android:padding">9dp</item>
+		<item name="android:background">?android:attr/selectableItemBackground</item>
+	</style>
 
     <style name="LinkText">
         <item name="android:paddingTop">9dp</item>
         <item name="android:paddingBottom">9dp</item>
     </style>
-    
+
     <style name="ActionButton" parent="android:Widget.Holo.ActionButton">
     </style>
 

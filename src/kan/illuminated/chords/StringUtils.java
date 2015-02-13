@@ -50,4 +50,12 @@ public class StringUtils {
 
 		return s.substring(n, e + 1);
 	}
+
+	public static boolean isEmpty(String s) {
+		return s == null || s.trim().isEmpty();
+	}
+
+	public static boolean isNotEmpty(String s) {
+		return !isEmpty(s);
+	}
 }

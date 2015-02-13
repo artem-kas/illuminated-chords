@@ -12,12 +12,23 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static kan.illuminated.chords.StringUtils.*;
+import static kan.illuminated.chords.data.ChordsHistory.Field.*;
+
 /**
  * @author KAN
  */
 public class ChordsHistory {
 
 	private static final int    MAX_CHORDS  = 128;
+
+	public enum Field {
+		AUTHOR,
+		TITLE
+	}
+
+	private static final String CHORDS_FIELDS =
+			"cid, author, title, url, type, rating, votes, text, marks, last_read, history, favourite";
 
 	private static final Object lock = new Object();
 
@@ -47,8 +58,11 @@ public class ChordsHistory {
 
 		ContentValues cv = chordsPublicContentValues(chords);
 		cv.put("last_read", chords.lastRead.getTime());
+		cv.put("history",   chords.history ? 1 : 0);
 
-		db.insert("chords", null, cv);
+		long id = db.insert("chords", null, cv);
+
+		chords.chordId = (int)id;
 	}
 
 	public void updateChords(Chords chords) {
@@ -64,11 +78,12 @@ public class ChordsHistory {
 
 		chords.previousRead = chords.lastRead;
 		chords.lastRead = new Date();
+		chords.history = true;
 
 		ContentValues cv = new ContentValues();
 
-		cv.put("cid", chords.chordId);
 		cv.put("last_read", chords.lastRead.getTime());
+		cv.put("history",   chords.history ? 1 : 0);
 
 		db.update("chords", cv, "cid = ?", new String[]{chords.chordId.toString()});
 
@@ -79,7 +94,7 @@ public class ChordsHistory {
 		DatabaseWrapper db = ChordsDb.chordsDb().getReadableDatabase();
 
 		Cursor c = db.rawQuery(
-				"select cid, author, title, url, type, rating, votes, text, marks, last_read " +
+				"select " + CHORDS_FIELDS + " " +
 				"from chords where url = ?", new String[]{url});
 
 		if (c.moveToNext()) {
@@ -92,6 +107,128 @@ public class ChordsHistory {
 			return null;
 		}
 	}
+
+	public List<Chords> readFullHistory() {
+
+		DatabaseWrapper db = ChordsDb.chordsDb().getReadableDatabase();
+
+		Cursor c = db.rawQuery(
+				"select " + CHORDS_FIELDS + " " +
+				"from chords " +
+				"where history = 1 " +
+				"order by last_read desc", null);
+
+		List<Chords> chords = new ArrayList<Chords>();
+		while (c.moveToNext()) {
+			chords.add(fromCursor(c));
+		}
+
+		return chords;
+	}
+
+	public void deleteFromHistory(Integer chordId) {
+
+		DatabaseWrapper db = ChordsDb.chordsDb().getWritableDatabase();
+
+		ContentValues cv = new ContentValues();
+		cv.put("history",   0);
+
+		db.update("chords", cv, "cid = ?", new String[]{chordId.toString()});
+	}
+
+	public void clearHistory() {
+
+		DatabaseWrapper db = ChordsDb.chordsDb().getWritableDatabase();
+
+		ContentValues cv = new ContentValues();
+		cv.put("history",   0);
+
+		db.update("chords", cv, null, null);
+	}
+
+	public void markFavourite(Chords chords) {
+
+		DatabaseWrapper db = ChordsDb.chordsDb().getWritableDatabase();
+
+		chords.favourite = true;
+
+		ContentValues cv = new ContentValues();
+		cv.put("favourite", 1);
+
+		int r = db.update("chords", cv, "cid = ?", new String[]{chords.chordId.toString()});
+		if (r != 1) {
+			throw new RuntimeException("expected 1 row update for marking it favourite, instead got " + r + " rows updated");
+		}
+	}
+
+	public void unmarkFavourite(Chords chords) {
+
+		DatabaseWrapper db = ChordsDb.chordsDb().getWritableDatabase();
+
+		chords.favourite = false;
+
+		ContentValues cv = new ContentValues();
+		cv.put("favourite", 0);
+
+		int r = db.update("chords", cv, "cid = ?", new String[]{chords.chordId.toString()});
+		if (r != 1) {
+			throw new RuntimeException("expected 1 row update for unmarking it favourite, instead got " + r + " rows updated");
+		}
+	}
+
+	public boolean isFavourite(Chords chords) {
+
+		DatabaseWrapper db = ChordsDb.chordsDb().getReadableDatabase();
+
+		Cursor c = db.rawQuery(
+				"select " + CHORDS_FIELDS + " " +
+						"from chords where url = ?", new String[]{chords.url});
+
+		if (c.moveToNext()) {
+			Chords res = fromCursor(c);
+			return res.favourite;
+		}
+
+		return false;
+	}
+
+	public List<Chords> readFavourites(String filter, Field sort) {
+
+		DatabaseWrapper db = ChordsDb.chordsDb().getReadableDatabase();
+
+		String sql = "select " + CHORDS_FIELDS + " " +
+				"from chords " +
+				"where favourite = 1 ";
+
+		String[] params = null;
+		if (isNotEmpty(filter)) {
+			sql += " and (" + AUTHOR + " like ? or " + TITLE + " like ?) ";
+			String ft = filter.trim() + "%";
+			params = new String[]{ft, ft};
+		}
+
+		switch (sort) {
+			case AUTHOR:
+				sql += "order by " + AUTHOR + ", " + TITLE;
+				break;
+			case TITLE:
+				sql += "order by " + TITLE + ", " + AUTHOR;
+				break;
+			default:
+				sql += "order by " + sort;
+		}
+
+		Cursor c = db.rawQuery(
+				sql, params);
+
+		List<Chords> chords = new ArrayList<Chords>();
+		while (c.moveToNext()) {
+			chords.add(fromCursor(c));
+		}
+
+		return chords;
+	}
+
 
 	public void shrinkChords() {
 
@@ -139,6 +276,8 @@ public class ChordsHistory {
 		chords.chordMarks   = stringToMarks(c.getString(8));
 
 		chords.lastRead     = new Date(c.getLong(9));
+		chords.history      = c.getInt(10) == 1;
+		chords.favourite    = c.getInt(11) == 1;
 
 		return chords;
 	}

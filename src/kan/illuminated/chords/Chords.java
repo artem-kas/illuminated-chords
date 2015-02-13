@@ -26,6 +26,10 @@ public class Chords {
 	public Date     lastRead;
 	public Date     previousRead;
 
+	public boolean  history;
+	public boolean  favourite;
+
+
 	private int longestLine = -1;
 
 	public int getLongestLine() {

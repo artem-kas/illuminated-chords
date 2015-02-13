@@ -22,6 +22,9 @@ public class UltimateGuitarChordsSource extends BackgroundTask<Chords> {
 		@Override
 		protected void onResponseTaskThread(Chords chords) {
 			ChordsHistory chordsHistory = ChordsDb.chordsDb().chordsHistory();
+
+			// yes this chords is a part of a history now
+			chords.history = true;
 			chordsHistory.storeChords(chords);
 		}
 

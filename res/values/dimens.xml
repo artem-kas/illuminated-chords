@@ -4,4 +4,11 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
+	<dimen name="chord_list_item_height">48dp</dimen>
+	<dimen name="chord_list_item_padding">8dp</dimen>
+	<dimen name="chord_list_child_padding">30dp</dimen>
+
+	<dimen name="chord_list_title_text_size">20sp</dimen>
+	<dimen name="chord_list_title_author_size">16sp</dimen>
+
 </resources>

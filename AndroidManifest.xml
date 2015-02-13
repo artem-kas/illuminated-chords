@@ -20,13 +20,12 @@
 		<activity
 			android:name=".activity.ChordsActivity"
 			android:label="chords activity"
-			android:theme="@style/FullScreenTheme"
-			android:uiOptions="splitActionBarWhenNarrow" >
+			android:theme="@style/FullScreenTheme" >
 		</activity>
 
 		<activity
 			android:name=".activity.SearchActivity"
-			android:label="search activity" >
+			android:label="chords search" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -35,6 +34,16 @@
 			<meta-data
 				android:name="android.app.searchable"
 				android:resource="@xml/searchable" />
+		</activity>
+
+		<activity
+			android:name=".activity.HistoryActivity"
+			android:label="History" >
+		</activity>
+
+		<activity
+			android:name=".activity.FavouritesActivity"
+			android:label="Favourites" >
 		</activity>
 
 		<provider

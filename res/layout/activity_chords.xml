@@ -6,7 +6,7 @@
 	android:layout_height="match_parent" >
 
     <!-- main text view -->
-    <kan.illuminated.chords.MyScrollView
+    <ScrollView
 		android:id="@+id/scrollChords"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
@@ -19,7 +19,7 @@
 	        android:layout_height="wrap_content"
 	        android:textSize="18sp"
 	        android:padding="9dp" />
-    </kan.illuminated.chords.MyScrollView>
+    </ScrollView>
 
     <!-- top bar -->
     <LinearLayout

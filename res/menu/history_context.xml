@@ -1,0 +1,5 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+	<item
+		android:id="@+id/history_delete"
+		android:title="@string/history_delete_chord" />
+</menu>

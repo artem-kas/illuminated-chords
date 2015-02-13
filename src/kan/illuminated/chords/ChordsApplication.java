@@ -19,4 +19,12 @@ public class ChordsApplication extends Application {
 
 		appContext = getApplicationContext();
 	}
+
+	@Override
+	public void onTerminate() {
+
+		System.out.println("terminating chords application");
+
+		super.onTerminate();
+	}
 }

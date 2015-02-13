@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="today">сегодня</string>
+	<string name="current_month">в этом месяце</string>
+
+	<string-array name="months">
+		<item>январь</item>
+		<item>феврать</item>
+		<item>март</item>
+		<item>апрель</item>
+		<item>май</item>
+		<item>июнь</item>
+		<item>июль</item>
+		<item>август</item>
+		<item>сентябрь</item>
+		<item>октябрь</item>
+		<item>ноябрь</item>
+		<item>декабрь</item>
+	</string-array>
+</resources>

@@ -1,37 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="settings"/>
-
-    <item
-        android:id="@+id/action_scroll"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="scroll"/>
-
-    <item
-        android:id="@+id/action_play"
+        android:id="@+id/menu_favourite"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:icon="@drawable/ic_action_play"
-        android:title="play"/>
-
-    <item
-        android:id="@+id/action_pause"
-        android:orderInCategory="100"
-        android:showAsAction="always"
-        android:visible="false"
-        android:icon="@drawable/ic_action_pause"
-        android:title="pause"/>
-
-    <item
-        android:id="@+id/action_speed"
-        android:orderInCategory="100"
-        android:showAsAction="always|collapseActionView"
-        android:actionViewClass="android.widget.SeekBar"
-        android:actionLayout="@layout/action_speed" />
+        android:title="Favourite"
+        android:icon="@drawable/ic_action_star_off"/>
 
 </menu>

@@ -1,32 +1,31 @@
 package kan.illuminated.chords.activity;
 
-import android.app.ExpandableListActivity;
 import android.app.FragmentManager;
 import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
+import kan.illuminated.chords.ActivityUtils;
 import kan.illuminated.chords.Chords;
 import kan.illuminated.chords.R;
 import kan.illuminated.chords.data.ChordsDb;
@@ -43,7 +42,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class SearchActivity extends ExpandableListActivity {
+import static kan.illuminated.chords.ApplicationPreferences.*;
+
+public class SearchActivity extends BaseChordsActivity {
 
 	private static final String TAG = SearchActivity.class.getSimpleName();
 
@@ -51,11 +52,11 @@ public class SearchActivity extends ExpandableListActivity {
 
 	private static final Map<String, Integer> TYPE_ORDER    = new HashMap<String, Integer>();
 	static {
-		TYPE_ORDER.put("chords",    1);
-		TYPE_ORDER.put("tab",       2);
-		TYPE_ORDER.put("bass",      3);
-		TYPE_ORDER.put("drums",     4);
-		TYPE_ORDER.put("ukulele",   5);
+		TYPE_ORDER.put("chords",            1);
+		TYPE_ORDER.put("tab",               2);
+		TYPE_ORDER.put("bass",              3);
+		TYPE_ORDER.put("drums",             4);
+		TYPE_ORDER.put("ukulele chords",    5);
 	}
 
 	private static class ChordsComparator implements Comparator<Chords> {
@@ -66,7 +67,7 @@ public class SearchActivity extends ExpandableListActivity {
 			Integer tTwo = TYPE_ORDER.get(two.type);
 
 			if (tOne == null) {
-				System.out.println("unknown type " + one.type);
+				Log.w(TAG, "unknown type " + one.type);
 				if (tTwo == null) {
 					int c = one.type.compareTo(two.type);
 					if (c != 0) {
@@ -77,7 +78,7 @@ public class SearchActivity extends ExpandableListActivity {
 				}
 			} else {
 				if (tTwo == null) {
-					System.out.println("unknown type " + two.type);
+					Log.w(TAG, "unknown type " + two.type);
 					return -1;
 				} else {
 					if (tOne.intValue() != tTwo.intValue()) {
@@ -233,8 +234,6 @@ public class SearchActivity extends ExpandableListActivity {
 				TextView authorText = (TextView) songView.findViewById(R.id.authorText);
 				authorText.setText(chords.author);
 
-				System.out.println("convert view is " + convertView);
-
 				return songView;
 			}
 			else {
@@ -316,10 +315,12 @@ public class SearchActivity extends ExpandableListActivity {
 	}
 
 
+	private MenuItem searchMenuItem;
+	private SearchView searchView;
 	private ExpandableListView listSearch;
 	private ExpandableChordsAdapter chordsAdapter;
 
-	private ProgressBar progressBar;
+	private ProgressBar     progressBar;
 
 	private SearchHistory searchHistory;
 
@@ -328,24 +329,26 @@ public class SearchActivity extends ExpandableListActivity {
 	private State state;
 
 
+	public SearchActivity() {
+		Log.d(TAG, "new SearchActivity");
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
 		Log.d(TAG, "onCreate()");
+
+		setContentView(R.layout.activity_search);
 
 		super.onCreate(savedInstanceState);
 
 		System.out.println("screen size is " +
 				(getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK));
 
-		DisplayMetrics dm = getResources().getDisplayMetrics();
-		System.out.println("density is " + dm.density);
-		System.out.println("density dpi is " + dm.densityDpi);
-		System.out.println("dpi is " + dm.xdpi + " - " + dm.ydpi);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setHomeButtonEnabled(true);
 
-		setContentView(R.layout.activity_search);
-
-		listSearch = getExpandableListView();
+		listSearch = (ExpandableListView) findViewById(android.R.id.list);
 		listSearch.setGroupIndicator(null);
 
 		chordsAdapter = new ExpandableChordsAdapter();
@@ -363,27 +366,16 @@ public class SearchActivity extends ExpandableListActivity {
 			fm.beginTransaction()
 					.add(ssf, SEARCH_FRAGMENT)
 					.commit();
+		}
 
+		if (ssf.state == null) {
+			// fragment may be restored without state
 			ssf.state = new State();
 		}
 
 		state = ssf.state;
 
-		listSearch.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parentAdapter, View view, int position, long id) {
-
-				System.out.println("item clicked " + id);
-
-				Chords chords = (Chords) parentAdapter.getAdapter().getItem(position);
-
-				Intent i = new Intent(SearchActivity.this, ChordsActivity.class);
-				i.setData(Uri.parse(chords.url));
-
-				startActivity(i);
-			}
-		});
+		loadState();
 
 		listSearch.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 
@@ -402,10 +394,7 @@ public class SearchActivity extends ExpandableListActivity {
 				} else {
 					Chords chords = adapter.getChords(groupPosition, childPosition);
 
-					Intent i = new Intent(SearchActivity.this, ChordsActivity.class);
-					i.setData(Uri.parse(chords.url));
-
-					startActivity(i);
+					ActivityUtils.showChordsActivity(SearchActivity.this, chords);
 				}
 
 				return true;
@@ -414,40 +403,38 @@ public class SearchActivity extends ExpandableListActivity {
 
 		Intent i = getIntent();
 		if (Intent.ACTION_SEARCH.equals(i.getAction())) {
-
 			// query from search view user input
 			String query = i.getStringExtra(SearchManager.QUERY);
 			if (query == null) {
 				// or may be data from suggestion list
 				query = i.getData() != null ? i.getData().toString() : null;
 			}
+			state.query = query;
+		}
 
-			if (state.query != null && state.query.equals(query)) {
+		if (state.chordsSearcher != null && state.chordsSearcher.getQuery().equals(state.query)) {
 
-				// probably just screen orientation change
+			// continue with the previous query, may be just screen orientation change
 
-				Log.d(TAG, "repeating query [" + query + "]");
+			Log.d(TAG, "continuing with query [" + state.query + "]");
 
-				chordsAdapter.setChords(state.chords);
-				chordsAdapter.notifyDataSetChanged();
+			chordsAdapter.setChords(state.chords);
+			chordsAdapter.notifyDataSetChanged();
+		} else {
 
-			} else {
+			// new query
 
-				// new query
+			Log.d(TAG, "new query [" + state.query + "]");
 
-				Log.d(TAG, "new query [" + query + "]");
+			state.chords = chordsAdapter.getChords();
 
-				state.query = query;
-				state.chords = chordsAdapter.getChords();
-
-				if (state.chordsSearcher != null) {
-					state.chordsSearcher.cancelQuery();
-				}
-				state.chordsSearcher = new UltimateGuitarChordsSearcher();
-				state.chordsSearcher.query(query);
-
-				progressBar.setVisibility(View.VISIBLE);
+			if (state.chordsSearcher != null) {
+				state.chordsSearcher.cancelQuery();
 			}
+			state.chordsSearcher = new UltimateGuitarChordsSearcher();
+			state.chordsSearcher.query(state.query);
+
+			progressBar.setVisibility(View.VISIBLE);
 		}
 
 		if (state.chordsSearcher != null) {
@@ -487,33 +474,19 @@ public class SearchActivity extends ExpandableListActivity {
 		getMenuInflater().inflate(R.menu.search, menu);
 
 		SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-		final SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+		searchMenuItem = menu.findItem(R.id.menu_search);
+		searchView = (SearchView) searchMenuItem.getActionView();
 
 		SearchableInfo si = searchManager.getSearchableInfo(getComponentName());
 
 		searchView.setSearchableInfo(si);
 
+		searchMenuItem.expandActionView();
+
 		searchView.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
 
 		if (state.query != null) {
-			searchView.setQuery(state.query, false /* submit */);
-			searchView.setIconified(false); // expand
-
-			// steal focus back from search view's text field - it's set with iconify()
-			listSearch.requestFocus();
-
-			// clean up iconify's keyboard
-			searchView.post(new Runnable() {
-
-				@Override
-				public void run() {
-		            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-		            if (imm != null) {
-		            	imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
-		            }
-				}
-			});
+			setSearchQuery(state.query);
 		}
 
 		return true;
@@ -624,6 +597,13 @@ public class SearchActivity extends ExpandableListActivity {
 		super.onStart();
 
 		Log.d(TAG, "onStart()");
+
+		// searchView is null if this is the first activity invocation
+		// otherwise onCreateOptionsMenu will not be called this time and searchView should be valid
+		if (searchView != null && state.query != null) {
+			setSearchQuery(state.query);
+		}
+
 	}
 
 	@Override
@@ -631,6 +611,8 @@ public class SearchActivity extends ExpandableListActivity {
 		super.onStop();
 
 		Log.d(TAG, "onStop()");
+
+		saveState();
 	}
 
 	@Override
@@ -645,5 +627,97 @@ public class SearchActivity extends ExpandableListActivity {
 		}
 
 		super.onDestroy();
+	}
+
+	@Override
+	protected void onRestart() {
+
+		Log.d(TAG, "onRestart()");
+
+		super.onRestart();
+	}
+
+	@Override
+	protected void onPause() {
+
+		Log.d(TAG, "onPause()");
+
+		super.onPause();
+	}
+
+	@Override
+	protected void onResume() {
+
+		Log.d(TAG, "onResume()");
+
+		super.onResume();
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+
+		Log.d(TAG, "onNewIntent()");
+
+		super.onNewIntent(intent);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+
+		Log.d(TAG, "onSaveInstanceState()");
+
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+
+		Log.d(TAG, "onRestoreInstanceState()");
+
+		super.onRestoreInstanceState(savedInstanceState);
+	}
+
+	private void setSearchQuery(String query) {
+		searchMenuItem.expandActionView();
+		searchView.setQuery(query, false /* submit */);
+
+		searchView.clearFocus();
+
+		// steal focus back from search view's text field - it's set with iconify()
+		listSearch.requestFocus();
+
+		// clean up iconify's keyboard
+		searchView.post(new Runnable() {
+
+			@Override
+			public void run() {
+				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+				System.out.println("hiding imm " + imm);
+
+				if (imm != null) {
+					imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+				}
+			}
+		});
+
+	}
+
+	private void saveState() {
+
+		SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
+		Editor editor = preferences.edit();
+
+		editor.putString(LAST_SEARCH_QUERY, state.query);
+
+		editor.apply();
+
+	}
+
+	private void loadState() {
+
+		SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
+
+		state.query = preferences.getString(LAST_SEARCH_QUERY, null);
 	}
 }

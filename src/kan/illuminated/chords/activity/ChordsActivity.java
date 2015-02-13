@@ -19,6 +19,8 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -34,6 +36,7 @@ import kan.illuminated.chords.Chords;
 import kan.illuminated.chords.Chords.ChordMark;
 import kan.illuminated.chords.MyTextView;
 import kan.illuminated.chords.R;
+import kan.illuminated.chords.data.ChordsDb;
 import kan.illuminated.chords.schordssource.UltimateGuitarChordsSource;
 import kan.illuminated.chords.ui.Autoscroller;
 
@@ -41,6 +44,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.lang.Math.*;
+import static kan.illuminated.chords.ApplicationPreferences.*;
 
 public class ChordsActivity extends BaseChordsActivity<Chords> {
 
@@ -146,6 +150,7 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 	private ScaleGestureDetector scaleGestureDetector;
 
+	private Menu menu;
 	//	private View		topRoot;
 //	private View		topSpace;
 //	private View		topBar;
@@ -168,6 +173,8 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 	private Autoscroller autoscroller;
 	private static final float minAutoscrollSpeed = 5;    // pps
 	private static final float maxAutoscrollSpeed = 25;    // pps
+
+	private boolean needCheckFavourite = false;
 
 
 	public ChordsActivity() {
@@ -268,8 +275,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 
-				System.out.println("scroll touch");
-
 				scaleGestureDetector.onTouchEvent(event);
 				gestureDetector.onTouchEvent(event);
 				return false;
@@ -330,12 +335,39 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+
+		Log.d(TAG, "onCreateOptionsMenu()");
+
+		getMenuInflater().inflate(R.menu.chords, menu);
+
+		this.menu = menu;
+
+		if (needCheckFavourite) {
+			checkFavourite();
+			needCheckFavourite = false;
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+		switch (item.getItemId()) {
+			case R.id.menu_favourite:
+				switchFavourite();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
 	private void restoreChordsTask(UltimateGuitarChordsSource ugcs) {
 		Chords ch = ugcs.getChords();
 		if (ch != null) {
-			stateStatus = EState.CHORDS;
-
-			setChordsText(ch);
+			onChordsLoaded(ch);
 		} else {
 			toLoadingState();
 		}
@@ -467,10 +499,24 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 		stateStatus = EState.CHORDS;
 
-		state().chordsOffset = 0;
-		state().chords = chords;
+		if (state().chords == null) {
+			// new chords loaded
+			state().chordsOffset = 0;
+			state().chords = chords;
+		} else {
+			// probably showing previous chords
+		}
 
 		setChordsText(chords);
+
+		if (ChordsDb.chordsDb().chordsHistory().isFavourite(chords)) {
+			if (menu != null) {
+				checkFavourite();
+			} else {
+				// menu haven't been loaded yet
+				needCheckFavourite = true;
+			}
+		}
 	}
 
 	@Override
@@ -481,6 +527,26 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 	@Override
 	public void onBackgroundTaskFailed(Exception e) {
 		// TODO
+	}
+
+	private void checkFavourite() {
+		MenuItem fm = menu.findItem(R.id.menu_favourite);
+		fm.setIcon(R.drawable.ic_action_star_active);
+	}
+
+	private void switchFavourite() {
+		MenuItem fm = menu.findItem(R.id.menu_favourite);
+		if (state().chords.favourite) {
+			// this chords is not favourite now
+			ChordsDb.chordsDb().chordsHistory().unmarkFavourite(state().chords);
+			fm.setIcon(R.drawable.ic_action_star_off);
+			showToast(state().chords.title + " is removed from favourites");
+		} else {
+			// this chords is favourite now
+			ChordsDb.chordsDb().chordsHistory().markFavourite(state().chords);
+			fm.setIcon(R.drawable.ic_action_star_active);
+			showToast(state().chords.title + " is added to favourites");
+		}
 	}
 
 	private void setChordsText(Chords chords) {
@@ -718,7 +784,7 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 		System.out.println("saved state is " + System.identityHashCode(savedInstanceState));
 
-		System.out.println("autoscroll velocity is " + savedInstanceState.getFloat("autoscrollVelocity"));
+		System.out.println("autoscroll velocity is " + savedInstanceState.getFloat(AUTOSCROLL_VELOCITY));
 
 		System.out.println("selection is " + textChords.getSelectionStart());
 
@@ -733,7 +799,7 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 		System.out.println("out state is " + System.identityHashCode(outState));
 
-		outState.putFloat("autoscrollVelocity", autoscroller.getScrollVelocity());
+		outState.putFloat(AUTOSCROLL_VELOCITY, autoscroller.getScrollVelocity());
 	}
 
 	private void saveSettings() {
@@ -741,16 +807,16 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 		SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
 		Editor editor = preferences.edit();
 
-		editor.putFloat("autoscrollVelocity", autoscroller.getScrollVelocity());
+		editor.putFloat(AUTOSCROLL_VELOCITY, autoscroller.getScrollVelocity());
 
-		editor.commit();
+		editor.apply();
 	}
 
 	private void loadSettings() {
 
 		SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
 
-		setScrollVelocity(preferences.getFloat("autoscrollVelocity", 10));
+		setScrollVelocity(preferences.getFloat(AUTOSCROLL_VELOCITY, 10));
 	}
 
 	private void setTextScale(float scale) {

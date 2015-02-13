@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="list_secondary_text">#888</color>
+
+	<color name="menu_active">#bbb</color>
+</resources>

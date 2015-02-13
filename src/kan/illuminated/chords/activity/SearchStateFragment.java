@@ -16,6 +16,7 @@ public class SearchStateFragment extends Fragment {
 
 	State state;
 
+
 	@Override
 	public void onAttach(Activity activity) {
 
@@ -85,7 +86,7 @@ public class SearchStateFragment extends Fragment {
 	@Override
 	public void onStop() {
 
-		Log.d(TAG, "onStop()");
+		Log.d(TAG, "onStop(), this is " + this + ", state is " + state);
 
 		super.onStop();
 	}

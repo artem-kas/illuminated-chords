@@ -13,7 +13,7 @@ public class ChordsDb {
 
 	public static final String  CHORDS_DB   = "chords.db";
 
-	public static final int     DB_VERSION  = 3;
+	public static final int     DB_VERSION  = 4;
 
 	private static volatile ChordsDb instance;
 
@@ -62,7 +62,9 @@ public class ChordsDb {
 					"votes int, " +
 					"text text, " +
 					"marks text, " +
-					"last_read date " +
+					"last_read date, " +
+					"history int, " +
+					"favourite int " +
 					")");
 		}
 
