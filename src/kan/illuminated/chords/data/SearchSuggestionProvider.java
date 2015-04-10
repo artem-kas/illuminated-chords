@@ -31,7 +31,6 @@ public class SearchSuggestionProvider extends ContentProvider {
 		System.out.println("SearchSuggestionProvider - searching for uri [" + uri + "], selection  [" + selection + "], selection args " + selectionArgs);
 
 		System.out.println("querying suggestions from " + Thread.currentThread().getName());
-		new Throwable().printStackTrace(System.out);
 
 		SearchHistory searchHistory = ChordsDb.chordsDb().searchHistory();
 		List<HistoryRecord> history = searchHistory.getHistory(selectionArgs[0], HISTORY_DISPLAY_COUNT);

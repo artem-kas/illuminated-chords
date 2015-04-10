@@ -46,6 +46,7 @@ import java.util.TimerTask;
 import static java.lang.Math.*;
 import static kan.illuminated.chords.ApplicationPreferences.*;
 
+// FIXME - what if chords can't be loaded
 public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 	private static final String TAG = ChordsActivity.class.getName();
@@ -134,6 +135,10 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 		float textScale = 1.0f;
 
 		boolean scrolling = false;
+	}
+
+	private static class Settings {
+		String chordsUrl;
 	}
 
 	public static class ChordsFragment extends BackgroundFragment {
@@ -290,7 +295,7 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 		fullScreen(false);
 
-		loadSettings();
+		Settings settings = loadSettings();
 
 		Uri requestUri = getIntent().getData();
 
@@ -326,10 +331,22 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 		} else {
 
-			Log.i(TAG, "creating chords activity with no request url");
+			// restarting application with no explicit chords url
 
 			if (ugcs != null) {
+
+				// already loaded/loading
+
 				restoreChordsTask(ugcs);
+
+			} else if (settings.chordsUrl != null) {
+
+				// probably application just started, try to check previous chords
+
+				loadChords(Uri.parse(settings.chordsUrl));
+
+			} else {
+				Log.w(TAG, "creating chords activity with no request url");
 			}
 		}
 
@@ -736,6 +753,8 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 		state().scrolling = autoscroller.isRunning();
 
 		autoscroller.stop();
+
+		saveSettings();
 	}
 
 	@Override
@@ -743,8 +762,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 		super.onStop();
 
 		System.out.println("onStop()");
-
-		saveSettings();
 	}
 
 	@Override
@@ -808,15 +825,21 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 		Editor editor = preferences.edit();
 
 		editor.putFloat(AUTOSCROLL_VELOCITY, autoscroller.getScrollVelocity());
+		editor.putString(CURRENT_CHORDS_URL, state().chordsSource.getUrl());
 
 		editor.apply();
 	}
 
-	private void loadSettings() {
+	private Settings loadSettings() {
 
 		SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
 
 		setScrollVelocity(preferences.getFloat(AUTOSCROLL_VELOCITY, 10));
+
+		Settings settings = new Settings();
+		settings.chordsUrl = preferences.getString(CURRENT_CHORDS_URL, null);
+
+		return settings;
 	}
 
 	private void setTextScale(float scale) {

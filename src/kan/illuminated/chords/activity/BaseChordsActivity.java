@@ -124,8 +124,6 @@ public class BaseChordsActivity<BackgroundResult> extends Activity implements Re
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		saveLastAction();
-
 		shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 	}
 
@@ -207,6 +205,13 @@ public class BaseChordsActivity<BackgroundResult> extends Activity implements Re
 	}
 
 	@Override
+	protected void onPause() {
+		super.onPause();
+
+		saveLastAction();
+	}
+
+	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 
@@ -235,10 +240,10 @@ public class BaseChordsActivity<BackgroundResult> extends Activity implements Re
 
 	private void saveLastAction() {
 
-		SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences preferences = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
 		Editor editor = preferences.edit();
 
-		editor.putString(LAST_ACTION, this.getClass().getName());
+		editor.putString(LAST_ACTIVITY, this.getClass().getName());
 
 		editor.apply();
 	}

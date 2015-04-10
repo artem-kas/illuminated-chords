@@ -2,6 +2,8 @@
 <resources>
 	<string name="app_name">illuminated-chords</string>
 
+	<string name="app_loading">loading…</string>
+
 	<string name="main_menu_search">Search</string>
 	<string name="main_menu_history">History</string>
 	<string name="main_menu_favourites">Favourites</string>
