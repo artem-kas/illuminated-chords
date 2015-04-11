@@ -788,7 +788,7 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 					int line = layout.getLineForOffset(state().chordsOffset);
 					layout.getLineBounds(line, r);
 
-					scrollChords.scrollTo(0, r.top);
+					scrollChords.scrollTo(0, r.bottom);
 
 					scrollChords.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 				}
@@ -797,14 +797,9 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 		System.out.println("onRestoreInstanceState()");
 
-		new Throwable().printStackTrace(System.out);
-
-		System.out.println("saved state is " + System.identityHashCode(savedInstanceState));
-
 		System.out.println("autoscroll velocity is " + savedInstanceState.getFloat(AUTOSCROLL_VELOCITY));
 
 		System.out.println("selection is " + textChords.getSelectionStart());
-
 	}
 
 	@Override
@@ -812,9 +807,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 		super.onSaveInstanceState(outState);
 
 		System.out.println("onSaveInstanceState()");
-		new Throwable().printStackTrace(System.out);
-
-		System.out.println("out state is " + System.identityHashCode(outState));
 
 		outState.putFloat(AUTOSCROLL_VELOCITY, autoscroller.getScrollVelocity());
 	}
