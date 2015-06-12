@@ -12,7 +12,11 @@
 	<string name="navigation_close">Close navigation panel</string>
 
 	<string name="today">today</string>
+	<string name="yesterday">yesterday</string>
+	<string name="this_week">this week</string>
 	<string name="current_month">this month</string>
+
+	<string name="chord_playback_speed">playback speed</string>
 
 	<string name="history_clear">Clear history</string>
 	<string name="history_delete_chord">Delete</string>

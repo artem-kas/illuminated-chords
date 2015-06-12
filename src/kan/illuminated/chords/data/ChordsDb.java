@@ -80,10 +80,6 @@ public class ChordsDb {
 	private ChordsDatabase chordsDatabase;
 
 	public ChordsDb(Context context) {
-
-		System.out.println("creating chords db with " + context);
-		new Throwable().printStackTrace(System.out);
-
 		this.chordsDatabase = new ChordsDatabase(context);
 	}
 

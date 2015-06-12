@@ -1,5 +1,11 @@
 package kan.illuminated.chords.activity;
 
+import static kan.illuminated.chords.ApplicationPreferences.FAVOURITES_FILTER;
+import static kan.illuminated.chords.ApplicationPreferences.FAVOURITES_SORT;
+import static kan.illuminated.chords.StringUtils.isNotEmpty;
+import static kan.illuminated.chords.data.ChordsHistory.Field.AUTHOR;
+import static kan.illuminated.chords.data.ChordsHistory.Field.TITLE;
+
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.app.SearchableInfo;
@@ -32,9 +38,6 @@ import kan.illuminated.chords.data.ChordsHistory.Field;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static kan.illuminated.chords.ApplicationPreferences.*;
-import static kan.illuminated.chords.data.ChordsHistory.Field.*;
 
 /**
  * @author KAN
@@ -130,7 +133,7 @@ public class FavouritesActivity extends BaseChordsActivity {
 
 		searchView.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
 
-		if (filter != null) {
+		if (isNotEmpty(filter)) {
 			searchItem.expandActionView();
 			searchView.setQuery(filter, false /* submit */);
 			searchView.clearFocus();

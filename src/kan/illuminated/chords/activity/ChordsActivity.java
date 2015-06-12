@@ -1,5 +1,10 @@
 package kan.illuminated.chords.activity;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static kan.illuminated.chords.ApplicationPreferences.AUTOSCROLL_VELOCITY;
+import static kan.illuminated.chords.ApplicationPreferences.CURRENT_CHORDS_URL;
+
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -42,9 +47,6 @@ import kan.illuminated.chords.ui.Autoscroller;
 
 import java.util.Timer;
 import java.util.TimerTask;
-
-import static java.lang.Math.*;
-import static kan.illuminated.chords.ApplicationPreferences.*;
 
 // FIXME - what if chords can't be loaded
 public class ChordsActivity extends BaseChordsActivity<Chords> {
@@ -171,7 +173,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 
 
 	private float baseTextSize;
-	private int actionBarHeight;
 
 	private Timer fullScreenTimer;
 
@@ -399,16 +400,9 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 						android.R.attr.actionBarSize,
 						android.R.attr.actionBarStyle});
 
-		actionBarHeight = themeAttrs.getDimensionPixelSize(0, 0);
 		int abStyleId = themeAttrs.getResourceId(1, 0);
 
-		System.out.println("action bar height is " + themeAttrs.getDimensionPixelSize(0, 0) + " " + themeAttrs.getDimension(0, 0));
-
-		System.out.println("action bar style id is " + abStyleId + " (" + getResources().getResourceName(abStyleId) + ")");
-
 		themeAttrs.recycle();
-
-//		topBar.setMinimumHeight(actionBarHeight);
 
 
 		if (abStyleId != 0) {
@@ -429,7 +423,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 			int subtitleStyleId = abAttrs.getResourceId(2, 0);
 
 			int actionBarStyleHeight = abAttrs.getInteger(3, 0);
-			System.out.println("action bar height is " + actionBarHeight + " " + actionBarStyleHeight);
 			System.out.println("action bar padding is " +
 					abAttrs.getInteger(4, 0) + " " +
 					abAttrs.getInteger(5, 0) + " " +
@@ -722,8 +715,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 		super.onResume();
 
 		System.out.println("onResume()");
-
-		System.out.println("text clickable is " + textChords.isClickable());
 
 		// TODO - resume full screen timer
 

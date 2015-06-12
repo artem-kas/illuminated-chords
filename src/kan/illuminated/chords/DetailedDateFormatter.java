@@ -1,11 +1,11 @@
 package kan.illuminated.chords;
 
+import static kan.illuminated.chords.DateUtils.*;
+
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-
-import static kan.illuminated.chords.DateUtils.*;
 
 /**
  * @author KAN
@@ -30,7 +30,7 @@ public class DetailedDateFormatter {
 		monthYearFormat = new SimpleDateFormat("MMMM yyyy", dfs);
 	}
 
-	public String monthString(Date date) {
+	public String historyDate(Date date) {
 
 		if (date.getTime() > now.getTime().getTime()) {
 
@@ -47,6 +47,20 @@ public class DetailedDateFormatter {
 			// today
 
 			return ChordsApplication.appContext.getResources().getString(R.string.today);
+		}
+
+		if (date.equals(yesterday())) {
+
+			// yesterday
+
+			return ChordsApplication.appContext.getResources().getString(R.string.yesterday);
+		}
+
+		if (date.compareTo(firstWeekDate()) >= 0) {
+
+			// this week
+
+			return ChordsApplication.appContext.getResources().getString(R.string.this_week);
 		}
 
 		if (now.get(Calendar.YEAR) == c.get(Calendar.YEAR) &&

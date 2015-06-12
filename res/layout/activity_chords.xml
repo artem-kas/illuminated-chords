@@ -69,6 +69,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_gravity="bottom"
+		android:gravity="center"
 		android:orientation="horizontal"
 		android:background="#ccc"
 		android:visibility="gone"
@@ -93,11 +94,25 @@
             android:contentDescription="pause"
             android:onClick="onPauseClick" />
 
-        <SeekBar
-            android:id="@+id/chordsPlaySeek"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical" />
+		<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:paddingTop="8dp"
+				android:paddingBottom="8dp"
+				android:orientation="vertical">
+			<SeekBar
+					android:id="@+id/chordsPlaySeek"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center_vertical" />
+
+			<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/chord_playback_speed"
+					android:layout_gravity="center"
+					style="@style/PanelText"/>
+		</LinearLayout>
 
     </LinearLayout>
 

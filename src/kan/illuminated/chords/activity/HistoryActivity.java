@@ -1,5 +1,7 @@
 package kan.illuminated.chords.activity;
 
+import static kan.illuminated.chords.DateUtils.*;
+
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
@@ -26,8 +28,6 @@ import kan.illuminated.chords.data.ChordsDb;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import static kan.illuminated.chords.DateUtils.*;
 
 /**
  * @author KAN
@@ -59,16 +59,38 @@ public class HistoryActivity extends BaseChordsActivity {
 			ChordsPeriod period = null;
 
 			Date today = today();
+			Date yesterday = yesterday();
+			Date week = firstWeekDate();
 
 			for (Chords c : chords) {
 				Date chordsDate = toDay(c.lastRead);
-				if (!chordsDate.equals(today)) {
-					chordsDate = toMonth(c.lastRead);
+
+				Date periodDate = null;
+				if (periodDate == null) {
+					if (chordsDate.equals(today)) {
+						periodDate = today;
+					}
 				}
 
-				if (period == null || !period.date.equals(chordsDate)) {
+				if (periodDate == null) {
+					if (chordsDate.equals(yesterday)) {
+						periodDate = yesterday;
+					}
+				}
+
+				if (periodDate == null) {
+					if (chordsDate.compareTo(week) >= 0) {
+						periodDate = week;
+					}
+				}
+
+				if (periodDate == null) {
+					periodDate = toMonth(chordsDate);
+				}
+
+				if (period == null || !period.date.equals(periodDate)) {
 					period = new ChordsPeriod();
-					period.date = chordsDate;
+					period.date = periodDate;
 
 					chordsPeriods.add(period);
 				}
@@ -121,7 +143,7 @@ public class HistoryActivity extends BaseChordsActivity {
 			View view = li.inflate(R.layout.history_date, parent, false);
 
 			TextView dateText = (TextView) view.findViewById(R.id.dateText);
-			dateText.setText(dateFormat.monthString(period.date));
+			dateText.setText(dateFormat.historyDate(period.date));
 
 			return view;
 		}

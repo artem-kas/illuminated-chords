@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="today">сегодня</string>
+	<string name="yesterday">вчера</string>
+	<string name="this_week">эта неделя</string>
 	<string name="current_month">в этом месяце</string>
 
 	<string-array name="months">

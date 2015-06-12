@@ -35,7 +35,7 @@
 
 		<activity
 			android:name=".activity.SearchActivity"
-			android:label="chords search" >
+			android:label="Chords search" >
 			<intent-filter>
 				<action android:name="android.intent.action.SEARCH" />
 			</intent-filter>

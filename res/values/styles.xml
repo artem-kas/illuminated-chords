@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <!--
@@ -39,6 +40,9 @@
     </style>
 
     <style name="ActionButton" parent="android:Widget.Holo.ActionButton">
+    </style>
+
+    <style name="PanelText" parent="android:TextAppearance.Small.Inverse">
     </style>
 
 </resources>
