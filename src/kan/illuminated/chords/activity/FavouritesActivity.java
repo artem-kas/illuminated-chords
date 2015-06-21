@@ -197,8 +197,6 @@ public class FavouritesActivity extends BaseChordsActivity {
 	protected void onStart() {
 		super.onStart();
 
-		Log.d(TAG, "onStart()");
-
 		loadSettings();
 
 		favouritesAdapter.refresh();

@@ -705,16 +705,12 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 	protected void onStart() {
 		super.onStart();
 
-		System.out.println("onStart()");
-
 		textChords.setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSize * state().textScale);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-
-		System.out.println("onResume()");
 
 		// TODO - resume full screen timer
 
@@ -725,8 +721,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 	@Override
 	protected void onPause() {
 		super.onPause();
-
-		System.out.println("onPause()");
 
 		// set text view selection to the visible area
 		// text view always scrolls to selection when restored, want it to be visible
@@ -749,16 +743,7 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 	}
 
 	@Override
-	protected void onStop() {
-		super.onStop();
-
-		System.out.println("onStop()");
-	}
-
-	@Override
 	protected void onDestroy() {
-		System.out.println("onDestroy()");
-
 		state().chordsOffset = textChords.getOffsetForPosition(0, scrollChords.getScrollY());
 
 		super.onDestroy();
@@ -786,8 +771,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 			});
 		}
 
-		System.out.println("onRestoreInstanceState()");
-
 		System.out.println("autoscroll velocity is " + savedInstanceState.getFloat(AUTOSCROLL_VELOCITY));
 
 		System.out.println("selection is " + textChords.getSelectionStart());
@@ -796,8 +779,6 @@ public class ChordsActivity extends BaseChordsActivity<Chords> {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-
-		System.out.println("onSaveInstanceState()");
 
 		outState.putFloat(AUTOSCROLL_VELOCITY, autoscroller.getScrollVelocity());
 	}

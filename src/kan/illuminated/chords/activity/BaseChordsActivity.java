@@ -1,5 +1,8 @@
 package kan.illuminated.chords.activity;
 
+import static kan.illuminated.chords.ApplicationPreferences.APP_PREFERENCES;
+import static kan.illuminated.chords.ApplicationPreferences.LAST_ACTIVITY;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -11,6 +14,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,8 +27,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import kan.illuminated.chords.R;
 import kan.illuminated.chords.activity.BackgroundTask.ResultListener;
-
-import static kan.illuminated.chords.ApplicationPreferences.*;
 
 public class BaseChordsActivity<BackgroundResult> extends Activity implements ResultListener<BackgroundResult> {
 
@@ -119,16 +121,28 @@ public class BaseChordsActivity<BackgroundResult> extends Activity implements Re
 
 	private ActionBarDrawerToggle rootDrawerToggle;
 
+	private final String logTag;
+
+
+	public BaseChordsActivity() {
+		logTag = getClass().getSimpleName();
+
+		d("new instance");
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		d("onCreate");
 
 		shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 	}
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
+
+		d("onPostCreate");
 
 		navList = (ListView) findViewById(R.id.navList);
 		if (navList != null) {
@@ -205,19 +219,72 @@ public class BaseChordsActivity<BackgroundResult> extends Activity implements Re
 	}
 
 	@Override
+	protected void onRestart() {
+		super.onRestart();
+
+		d("onRestart");
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		d("onStart");
+
+		saveLastAction();
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+
+		d("onStop");
+	}
+
+	@Override
 	protected void onPause() {
 		super.onPause();
 
-		saveLastAction();
+		d("onPause");
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		d("onResume");
+	}
+
+	@Override
+	protected void onPostResume() {
+		super.onPostResume();
+
+		d("onPostResume");
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 
+		d("onDestroy");
+
 		if (backgroundFragment != null && backgroundFragment.backgroundTask != null) {
 			backgroundFragment.backgroundTask.removeResultListener();
 		}
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		d("onSaveInstanceState");
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+
+		d("onRestoreInstanceState");
 	}
 
 	@Override
@@ -251,5 +318,9 @@ public class BaseChordsActivity<BackgroundResult> extends Activity implements Re
 	protected void showToast(String message) {
 		Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
 		toast.show();
+	}
+
+	protected void d(String msg) {
+		Log.d(logTag, msg);
 	}
 }

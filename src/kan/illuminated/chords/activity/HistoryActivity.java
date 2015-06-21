@@ -24,6 +24,7 @@ import kan.illuminated.chords.Chords;
 import kan.illuminated.chords.DetailedDateFormatter;
 import kan.illuminated.chords.R;
 import kan.illuminated.chords.data.ChordsDb;
+import kan.illuminated.chords.data.ChordsHistory;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,8 +47,18 @@ public class HistoryActivity extends BaseChordsActivity {
 		private DetailedDateFormatter dateFormat = new DetailedDateFormatter();
 
 		private ExpandableHistoryAdapter() {
+			readHistory();
+		}
+
+		private void readHistory() {
 			List<Chords> chords = ChordsDb.chordsDb().chordsHistory().readFullHistory();
+			historyReadTick = ChordsHistory.getLastHistoryUpdate();
 			groupChords(chords);
+		}
+
+		private void refreshHistory() {
+			readHistory();
+			notifyDataSetChanged();
 		}
 
 		private void groupChords(List<Chords> chords) {
@@ -186,6 +197,8 @@ public class HistoryActivity extends BaseChordsActivity {
 	private ExpandableListView listHistory;
 	private ExpandableHistoryAdapter historyAdapter;
 
+	private long historyReadTick;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -242,6 +255,7 @@ public class HistoryActivity extends BaseChordsActivity {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
 								ChordsDb.chordsDb().chordsHistory().clearHistory();
+								historyReadTick = ChordsHistory.getLastHistoryUpdate();
 								historyAdapter.clear();
 								historyAdapter.notifyDataSetChanged();
 							}
@@ -260,7 +274,7 @@ public class HistoryActivity extends BaseChordsActivity {
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
 
-		System.out.println("context menu for " + v);
+		d("context menu for " + v);
 
 		ExpandableListContextMenuInfo elMenuInfo = (ExpandableListContextMenuInfo) menuInfo;
 
@@ -297,6 +311,7 @@ public class HistoryActivity extends BaseChordsActivity {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
 									ChordsDb.chordsDb().chordsHistory().deleteFromHistory(chords.chordId);
+									historyReadTick = ChordsHistory.getLastHistoryUpdate();
 									historyAdapter.deleteChild(gpos, cpos);
 									historyAdapter.notifyDataSetChanged();
 								}
@@ -308,6 +323,40 @@ public class HistoryActivity extends BaseChordsActivity {
 				return true;
 			default:
 				return super.onContextItemSelected(item);
+		}
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putLong("historyReadTick", historyReadTick);
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+
+		historyReadTick = savedInstanceState.getLong("historyReadTick");
+
+		refreshHistory();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		refreshHistory();
+	}
+
+	private void refreshHistory() {
+		if (historyReadTick == 0) {
+			// restarting activity, but instance state haven't been restored yet
+			return ;
+		}
+
+		if (ChordsHistory.historyUpdatedAfter(historyReadTick)) {
+			historyAdapter.refreshHistory();
 		}
 	}
 }

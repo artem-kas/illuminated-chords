@@ -1,19 +1,21 @@
 package kan.illuminated.chords.data;
 
+import static kan.illuminated.chords.StringUtils.isNotEmpty;
+import static kan.illuminated.chords.data.ChordsHistory.Field.AUTHOR;
+import static kan.illuminated.chords.data.ChordsHistory.Field.TITLE;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import kan.illuminated.chords.Chords;
 import kan.illuminated.chords.Chords.ChordMark;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static kan.illuminated.chords.StringUtils.*;
-import static kan.illuminated.chords.data.ChordsHistory.Field.*;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * @author KAN
@@ -21,6 +23,8 @@ import static kan.illuminated.chords.data.ChordsHistory.Field.*;
 public class ChordsHistory {
 
 	private static final int    MAX_CHORDS  = 128;
+
+	private volatile static long lastHistoryUpdate = System.nanoTime();
 
 	public enum Field {
 		AUTHOR,
@@ -31,6 +35,19 @@ public class ChordsHistory {
 			"cid, author, title, url, type, rating, votes, text, marks, last_read, history, favourite";
 
 	private static final Object lock = new Object();
+
+
+	private static void markLastHistoryUpdate() {
+		lastHistoryUpdate = System.nanoTime();
+	}
+
+	public static long getLastHistoryUpdate() {
+		return lastHistoryUpdate;
+	}
+
+	public static boolean historyUpdatedAfter(long tick) {
+		return lastHistoryUpdate > tick;
+	}
 
 	public void storeChords(Chords chords) {
 		synchronized (lock) {
@@ -63,6 +80,8 @@ public class ChordsHistory {
 		long id = db.insert("chords", null, cv);
 
 		chords.chordId = (int)id;
+
+		markLastHistoryUpdate();
 	}
 
 	public void updateChords(Chords chords) {
@@ -70,6 +89,8 @@ public class ChordsHistory {
 		DatabaseWrapper db = ChordsDb.chordsDb().getWritableDatabase();
 
 		db.update("chords", chordsPublicContentValues(chords), "url = ?", new String[]{chords.url});
+
+		markLastHistoryUpdate();
 	}
 
 	public void updateLastRead(Chords chords) {
@@ -87,6 +108,7 @@ public class ChordsHistory {
 
 		db.update("chords", cv, "cid = ?", new String[]{chords.chordId.toString()});
 
+		markLastHistoryUpdate();
 	}
 
 	public Chords readChords(String url) {
@@ -134,6 +156,8 @@ public class ChordsHistory {
 		cv.put("history",   0);
 
 		db.update("chords", cv, "cid = ?", new String[]{chordId.toString()});
+
+		markLastHistoryUpdate();
 	}
 
 	public void clearHistory() {
@@ -144,6 +168,8 @@ public class ChordsHistory {
 		cv.put("history",   0);
 
 		db.update("chords", cv, null, null);
+
+		markLastHistoryUpdate();
 	}
 
 	public void markFavourite(Chords chords) {
